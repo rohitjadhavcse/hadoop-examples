@@ -1,0 +1,14 @@
+hive> create table hstaff(ecode string, ename string, esal int, dname string,
+    > dloc string)
+    > stored by 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'           
+    > with serdeproperties("hbase.columns.mapping"=":key,e:ename,e:esal,d:dname,d:dloc")
+    > tblproperties("hbase.table.name"="hbstaff");
+
+____________________________________
+rdbms to hbase import
+_____________________________________
+
+ sqoop import --connect jdbc:mysql://localhost/hb --username root --table staff --columns ecode,ename,esal --hbase-table hbstaff --column-family  e
+
+ sqoop import --connect jdbc:mysql://localhost/hb --username root --table staff --columns ecode,dname,dloc --hbase-table hbstaff --column-family  d
+

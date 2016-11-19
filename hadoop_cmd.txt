@@ -1,0 +1,110 @@
+[training@localhost ~]$ hadoop fs -copyFromLocal t.txt test
+copyFromLocal: File t.txt does not exist.
+[training@localhost ~]$ hadoop fs -copyFromLocal t.text test
+[training@localhost ~]$ hadoop fs -cat test
+cat: File does not exist: /user/training/test
+[training@localhost ~]$ hadoop fs -cat test/t.text
+1,ttat,4556,f,78
+12,ttatr,4556,f,78
+13,ttatd,4556,f,78
+14,ttats,4556,m,78
+15,ttats,4556,f,78
+16,ttatd,4556,m,78
+[training@localhost ~]$ hadoop jar  Desktop/mr.jar mr.test.Emp1 test/t.text res
+14/08/27 07:09:20 WARN mapred.JobClient: Use GenericOptionsParser for parsing the arguments. Applications should implement Tool for the same.
+14/08/27 07:09:20 INFO input.FileInputFormat: Total input paths to process : 1
+14/08/27 07:09:20 WARN snappy.LoadSnappy: Snappy native library is available
+14/08/27 07:09:20 INFO util.NativeCodeLoader: Loaded the native-hadoop library
+14/08/27 07:09:20 INFO snappy.LoadSnappy: Snappy native library loaded
+14/08/27 07:09:20 INFO mapred.JobClient: Running job: job_201408270603_0001
+14/08/27 07:09:21 INFO mapred.JobClient:  map 0% reduce 0%
+14/08/27 07:09:27 INFO mapred.JobClient:  map 100% reduce 0%
+14/08/27 07:09:34 INFO mapred.JobClient:  map 100% reduce 33%
+14/08/27 07:09:35 INFO mapred.JobClient:  map 100% reduce 100%
+14/08/27 07:09:35 INFO mapred.JobClient: Job complete: job_201408270603_0001
+14/08/27 07:09:35 INFO mapred.JobClient: Counters: 22
+14/08/27 07:09:35 INFO mapred.JobClient:   Job Counters 
+14/08/27 07:09:35 INFO mapred.JobClient:     Launched reduce tasks=1
+14/08/27 07:09:35 INFO mapred.JobClient:     SLOTS_MILLIS_MAPS=5220
+14/08/27 07:09:35 INFO mapred.JobClient:     Total time spent by all reduces waiting after reserving slots (ms)=0
+14/08/27 07:09:35 INFO mapred.JobClient:     Total time spent by all maps waiting after reserving slots (ms)=0
+14/08/27 07:09:35 INFO mapred.JobClient:     Launched map tasks=1
+14/08/27 07:09:35 INFO mapred.JobClient:     Data-local map tasks=1
+14/08/27 07:09:35 INFO mapred.JobClient:     SLOTS_MILLIS_REDUCES=8138
+14/08/27 07:09:35 INFO mapred.JobClient:   FileSystemCounters
+14/08/27 07:09:35 INFO mapred.JobClient:     FILE_BYTES_READ=54
+14/08/27 07:09:35 INFO mapred.JobClient:     HDFS_BYTES_READ=219
+14/08/27 07:09:35 INFO mapred.JobClient:     FILE_BYTES_WRITTEN=109254
+14/08/27 07:09:35 INFO mapred.JobClient:     HDFS_BYTES_WRITTEN=15
+14/08/27 07:09:35 INFO mapred.JobClient:   Map-Reduce Framework
+14/08/27 07:09:35 INFO mapred.JobClient:     Reduce input groups=2
+14/08/27 07:09:35 INFO mapred.JobClient:     Combine output records=0
+14/08/27 07:09:35 INFO mapred.JobClient:     Map input records=6
+14/08/27 07:09:35 INFO mapred.JobClient:     Reduce shuffle bytes=54
+14/08/27 07:09:35 INFO mapred.JobClient:     Reduce output records=2
+14/08/27 07:09:35 INFO mapred.JobClient:     Spilled Records=12
+14/08/27 07:09:35 INFO mapred.JobClient:     Map output bytes=36
+14/08/27 07:09:35 INFO mapred.JobClient:     Combine input records=0
+14/08/27 07:09:35 INFO mapred.JobClient:     Map output records=6
+14/08/27 07:09:35 INFO mapred.JobClient:     SPLIT_RAW_BYTES=107
+14/08/27 07:09:35 INFO mapred.JobClient:     Reduce input records=6
+[training@localhost ~]$ hadoop fs -cat test/res part-r-00000
+cat: File does not exist: /user/training/test/res
+cat: File does not exist: /user/training/part-r-00000
+[training@localhost ~]$ hadoop fs -cat res part-r-00000
+cat: File does not exist: /user/training/res
+cat: File does not exist: /user/training/part-r-00000
+[training@localhost ~]$ hadoop fs -cat  part-r-00000
+cat: File does not exist: /user/training/part-r-00000
+[training@localhost ~]$ hadoop fs -cat test/res 
+cat: File does not exist: /user/training/test/res
+[training@localhost ~]$ hadoop fs -cat res 
+cat: File does not exist: /user/training/res
+[training@localhost ~]$ hadoop jar  Desktop/mr.jar mr.test.Emp1 test/t.text test/res1
+14/08/27 07:11:32 WARN mapred.JobClient: Use GenericOptionsParser for parsing the arguments. Applications should implement Tool for the same.
+14/08/27 07:11:32 INFO input.FileInputFormat: Total input paths to process : 1
+14/08/27 07:11:32 WARN snappy.LoadSnappy: Snappy native library is available
+14/08/27 07:11:32 INFO util.NativeCodeLoader: Loaded the native-hadoop library
+14/08/27 07:11:32 INFO snappy.LoadSnappy: Snappy native library loaded
+14/08/27 07:11:33 INFO mapred.JobClient: Running job: job_201408270603_0002
+14/08/27 07:11:34 INFO mapred.JobClient:  map 0% reduce 0%
+14/08/27 07:11:37 INFO mapred.JobClient:  map 100% reduce 0%
+14/08/27 07:11:44 INFO mapred.JobClient:  map 100% reduce 33%
+14/08/27 07:11:46 INFO mapred.JobClient:  map 100% reduce 100%
+14/08/27 07:11:46 INFO mapred.JobClient: Job complete: job_201408270603_0002
+14/08/27 07:11:46 INFO mapred.JobClient: Counters: 22
+14/08/27 07:11:46 INFO mapred.JobClient:   Job Counters 
+14/08/27 07:11:46 INFO mapred.JobClient:     Launched reduce tasks=1
+14/08/27 07:11:46 INFO mapred.JobClient:     SLOTS_MILLIS_MAPS=3213
+14/08/27 07:11:46 INFO mapred.JobClient:     Total time spent by all reduces waiting after reserving slots (ms)=0
+14/08/27 07:11:46 INFO mapred.JobClient:     Total time spent by all maps waiting after reserving slots (ms)=0
+14/08/27 07:11:46 INFO mapred.JobClient:     Launched map tasks=1
+14/08/27 07:11:46 INFO mapred.JobClient:     Data-local map tasks=1
+14/08/27 07:11:46 INFO mapred.JobClient:     SLOTS_MILLIS_REDUCES=8373
+14/08/27 07:11:46 INFO mapred.JobClient:   FileSystemCounters
+14/08/27 07:11:46 INFO mapred.JobClient:     FILE_BYTES_READ=54
+14/08/27 07:11:46 INFO mapred.JobClient:     HDFS_BYTES_READ=219
+14/08/27 07:11:46 INFO mapred.JobClient:     FILE_BYTES_WRITTEN=109266
+14/08/27 07:11:46 INFO mapred.JobClient:     HDFS_BYTES_WRITTEN=15
+14/08/27 07:11:46 INFO mapred.JobClient:   Map-Reduce Framework
+14/08/27 07:11:46 INFO mapred.JobClient:     Reduce input groups=2
+14/08/27 07:11:46 INFO mapred.JobClient:     Combine output records=0
+14/08/27 07:11:46 INFO mapred.JobClient:     Map input records=6
+14/08/27 07:11:46 INFO mapred.JobClient:     Reduce shuffle bytes=54
+14/08/27 07:11:46 INFO mapred.JobClient:     Reduce output records=2
+14/08/27 07:11:46 INFO mapred.JobClient:     Spilled Records=12
+14/08/27 07:11:46 INFO mapred.JobClient:     Map output bytes=36
+14/08/27 07:11:46 INFO mapred.JobClient:     Combine input records=0
+14/08/27 07:11:46 INFO mapred.JobClient:     Map output records=6
+14/08/27 07:11:46 INFO mapred.JobClient:     SPLIT_RAW_BYTES=107
+14/08/27 07:11:46 INFO mapred.JobClient:     Reduce input records=6
+[training@localhost ~]$ hadoop fs -cat test/res 
+cat: File does not exist: /user/training/test/res
+[training@localhost ~]$ hadoop fs -cat test/res1 
+cat: File does not exist: /user/training/test/res1
+[training@localhost ~]$ hadoop fs -cat res1/part-r-00000
+10      90000   30000.0 60000   10000   3
+20      140000  46666.666666666664      70000   30000   3
+30      140000  70000.0 90000   50000   2
+40      80000   80000.0 80000   80000   1
+[training@localhost ~]$ 

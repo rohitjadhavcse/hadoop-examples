@@ -1,0 +1,16 @@
+hadoop fs -ls /user/hive/warehouse/tdd.db/staff/s
+hadoop fs -ls /user/hive/warehouse/tdd.db/staff/s=f
+hadoop fs -cat /user/hive/warehouse/tdd.db/staff/s=f/000000_0
+hadoop fs -cat /user/hive/warehouse/tdd.db/stff/s=m/000000_0
+hadoop fs -cat /user/game/d=11/000000_0
+hadoop fs -cat /user/game/d=12/000000_0
+hadoop fs  -ls /user/urs
+hadoop fs  -ls /user/urs/d=11
+hadoop fs  -ls /user/urs/d=11/s=f
+hadoop fs  -cat /user/urs/d=11/s=f/000000_0
+hadoop fs -ls /user/hive/warehouse/tdd.db/employee
+hadoop fs -ls /user/hive/warehouse/tdd.db/employee/d=11
+hadoop fs -cat /user/hive/warehouse/tdd.db/employee/d=15/000000_0
+hadoop fs -cat /user/hive/warehouse/tdd.db/employee/d=15/s=m/000000_0
+
+ 

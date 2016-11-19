@@ -1,0 +1,301 @@
+Example1:   Emp1.java
+___________________________________________________
+Input file in hdfs:
+
+[training@localhost ~]$ hadoop fs -cat hr/emp.txt
+101,bharat,10000,m,11
+102,ravi,20000,f,12
+103,hari,30000,m,13
+104,madhu,40000,f,11
+105,manu,50000,f,12
+106,venu,60000,m,12
+107,vani,50000,f,13
+
+Schema:- ecode,ename,sal,sex,dno
+Task:  foreach sex group total salary.
+sql :  select sex, sum(sal) from emp group by sex;
+
+__________
+Emp1.java
+__________
+package mr.test;
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+/*
+ *  select sex, sum(sal) from emp group by sex ;
+ *  
+ */
+
+public class Emp1 
+{  //  schema -- ecode,ename,sal,sex,dno
+   public static class Emap extends Mapper<LongWritable,Text,Text,IntWritable>
+   {
+	   public void map(LongWritable k, Text v, Context con)
+	   throws IOException, InterruptedException
+	   {
+		   String line=v.toString();
+		   String[] w = line.split(",");
+		   String sex = w[3];
+		   int sal = Integer.parseInt(w[2]);
+		   con.write(new Text(sex),new IntWritable(sal));
+	   }
+	   
+   }
+   public static class Ered extends Reducer<Text,IntWritable,Text,IntWritable>
+   {
+	   public void reduce(Text k,Iterable<IntWritable> vlist,Context con)
+	   throws IOException, InterruptedException
+	   {
+		 int tot=0;
+		 for(IntWritable v:vlist)
+			 tot+=v.get();
+		 con.write(k, new IntWritable(tot));
+	   }
+   }
+   public static void main(String[] args) throws Exception
+   {
+	   Configuration c = new Configuration();
+	   Path p1 =  new Path(args[0]);
+	   Path p2= new Path(args[1]);
+	   Job j = new Job(c,"Test");
+	   j.setJarByClass(Emp1.class);
+	  // j.setNumReduceTasks(0);
+	   j.setMapperClass(Emap.class);
+	   j.setReducerClass(Ered.class);
+	   j.setOutputKeyClass(Text.class);
+	   j.setOutputValueClass(IntWritable.class);
+	   FileInputFormat.addInputPath(j, p1);
+	   FileOutputFormat.setOutputPath(j, p2);
+	   System.exit(j.waitForCompletion(true) ? 0:1);
+	   
+   }
+} 
+
+exported the class into mr.jar.
+submitting hadoop job:
+
+$ hadoop jar Desktop/mr.jar    mr.test.Emp1 hr/emp.txt    Result1
+
+output of the job:
+
+$ hadoop fs -cat Result1/part-r-00000
+
+f       160000
+m       100000
+
+______________________________________________________
+Example2 :   Emp2.java
+______________________________________________________
+input hdfs file and data:
+
+[training@localhost ~]$ hadoop fs -cat hr/emp.txt
+101,bharat,10000,m,11
+102,ravi,20000,f,12
+103,hari,30000,m,13
+104,madhu,40000,f,11
+105,manu,50000,f,12
+106,venu,60000,m,12
+107,vani,50000,f,13
+
+Schema:- ecode,ename,sal,sex,dno
+Task:- foreach department , total salary.
+sql:- select dno, sum(sal) from emp group by dno;
+__________   
+Emp2.java
+__________
+package mr.test;
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+/*
+ *  select dno, sum(sal) from emp group by dno ;
+ *  
+ */
+
+public class Emp2
+{  //  schema -- ecode,ename,sal,sex,dno
+   public static class Emap extends Mapper<LongWritable,Text,Text,IntWritable>
+   {
+	   public void map(LongWritable k, Text v, Context con)
+	   throws IOException, InterruptedException
+	   {
+		   String line=v.toString();
+		   String[] w = line.split(",");
+		   String  dno= w[4];
+		   int sal = Integer.parseInt(w[2]);
+		   con.write(new Text(dno),new IntWritable(sal));
+	   }
+	   
+   }
+   public static class Ered extends Reducer<Text,IntWritable,Text,IntWritable>
+   {
+	   public void reduce(Text k,Iterable<IntWritable> vlist,Context con)
+	   throws IOException, InterruptedException
+	   {
+		 int tot=0;
+		 for(IntWritable v:vlist)
+			 tot+=v.get();
+		 con.write(k, new IntWritable(tot));
+	   }
+   }
+   public static void main(String[] args) throws Exception
+   {
+	   Configuration c = new Configuration();
+	   Path p1 =  new Path(args[0]);
+	   Path p2= new Path(args[1]);
+	   Job j = new Job(c,"Test");
+	   j.setJarByClass(Emp2.class);
+	  // j.setNumReduceTasks(0);
+	   j.setMapperClass(Emap.class);
+	   j.setReducerClass(Ered.class);
+	   j.setOutputKeyClass(Text.class);
+	   j.setOutputValueClass(IntWritable.class);
+	   FileInputFormat.addInputPath(j, p1);
+	   FileOutputFormat.setOutputPath(j, p2);
+	   System.exit(j.waitForCompletion(true) ? 0:1);
+	   
+   }
+} 
+
+submitting hadoop job:
+
+$ hadoop jar Desktop/mr.jar  mr.test.Emp2 hr/emp.txt  Result2
+
+
+output of the job:
+
+$ hadoop fs -cat Result2/part-r-00000
+11      50000
+12      130000
+13      80000
+
+______________________________________________________
+Example3:  Emp3.java
+______________________________________________________
+
+input hdfs file and data:
+
+[training@localhost ~]$ hadoop fs -cat hr/emp.txt
+101,bharat,10000,m,11
+102,ravi,20000,f,12
+103,hari,30000,m,13
+104,madhu,40000,f,11
+105,manu,50000,f,12
+106,venu,60000,m,12
+107,vani,50000,f,13
+
+Schema:- ecode,ename,sal,sex,dno
+Task:- foreach sex group , average  salary.
+sql:- select sex, avg(sal) from emp group by sex;
+__________
+Emp3.java
+__________
+package mr.test;
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+/*
+ *  select sex, avg(sal) from emp group by sex ;
+ *  
+ */
+
+public class Emp3
+{  //  schema -- ecode,ename,sal,sex,dno
+   public static class Emap extends Mapper<LongWritable,Text,Text,IntWritable>
+   {
+	   public void map(LongWritable k, Text v, Context con)
+	   throws IOException, InterruptedException
+	   {
+		   String line=v.toString();
+		   String[] w = line.split(",");
+		   String sex = w[3];
+		   int sal = Integer.parseInt(w[2]);
+		   con.write(new Text(sex),new IntWritable(sal));
+	   }
+	   
+   }
+   public static class Ered extends Reducer<Text,IntWritable,Text,IntWritable>
+   {
+	   public void reduce(Text k,Iterable<IntWritable> vlist,Context con)
+	   throws IOException, InterruptedException
+	   {
+		 int tot=0;
+		 int cnt=0;
+		 for(IntWritable v:vlist)
+		 {
+			 tot+=v.get();
+			 cnt++;
+		 }
+		 int avg=tot/cnt;
+			 
+		 con.write(k, new IntWritable(avg));
+	   }
+   }
+   public static void main(String[] args) throws Exception
+   {
+	   Configuration c = new Configuration();
+	   Path p1 =  new Path(args[0]);
+	   Path p2= new Path(args[1]);
+	   Job j = new Job(c,"Test");
+	   j.setJarByClass(Emp3.class);
+	  // j.setNumReduceTasks(0);
+	   j.setMapperClass(Emap.class);
+	   j.setReducerClass(Ered.class);
+	   j.setOutputKeyClass(Text.class);
+	   j.setOutputValueClass(IntWritable.class);
+	   FileInputFormat.addInputPath(j, p1);
+	   FileOutputFormat.setOutputPath(j, p2);
+	   System.exit(j.waitForCompletion(true) ? 0:1);
+	   
+   }
+} 
+
+Submitting hadoop job:
+
+$ hadoop jar Desktop/mr.jar  mr.test.Emp3 hr/emp.txt  Result3
+
+
+output of the job:
+
+$ hadoop fs -cat Result3/part-r-00000
+f       40000
+m       33333
+
+_______________________________________________
+Example4:   Emp4.java
+_______________________________________________
+

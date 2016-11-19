@@ -1,0 +1,76 @@
+package mr.test;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.
+                 input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.
+                      output.FileOutputFormat;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.IntWritable;
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+public class WordCount 
+{
+  public static class MyMap extends 
+     Mapper<LongWritable,Text,Text,IntWritable>
+  {
+    public void map(LongWritable k, Text v, Context 	con) throws IOException, InterruptedException
+    {
+       String line=v.toString();
+       StringTokenizer t= new StringTokenizer(line);
+       while(t.hasMoreTokens())
+       {
+          String word=t.nextToken();
+         con.write(new Text(word), new IntWritable(1));
+       }
+    }
+   }
+   public static class MyRed extends
+    Reducer<Text,IntWritable,Text,IntWritable>
+   {
+      public void reduce(Text k,
+      Iterable<IntWritable>  vlist, Context con) 
+     throws IOException, InterruptedException
+     {
+        int tot=0;
+        for(IntWritable v:vlist)
+          tot+=v.get();
+        con.write(k,new IntWritable(tot));
+     }
+   }
+   public static void main(String[] args)
+    throws Exception
+   {
+       Configuration c = new Configuration();
+       Job j = new Job(c,"Job1");
+       j.setJarByClass(WordCount.class);
+       j.setMapperClass(MyMap.class);
+       j.setReducerClass(MyRed.class);
+       j.setOutputKeyClass(Text.class);
+       j.setOutputValueClass(IntWritable.class);
+       Path inputFile = new Path(args[0]);
+       Path outputDir = new Path(args[1]);
+       FileInputFormat.addInputPath(j,inputFile);
+       FileOutputFormat.setOutputPath(j,outputDir);
+       System.exit(j.waitForCompletion(true) ? 0:1);
+   }
+}
+
+____________________________________
+LineCount.java --- number of lines inthe file.
+
+
+public static class MyMap extends 
+     Mapper<LongWritable,Text,Text,IntWritable>
+  {
+    public void map(LongWritable k, Text v, Context 	
+con) throws IOException, InterruptedException
+    {
+      con.write(new Text("Lines"), new IntWritable(1));
+    }
+   }

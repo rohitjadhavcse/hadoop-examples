@@ -1,0 +1,231 @@
+-- simple xml file
+hive> create database xdb;
+hive> use xdb;
+
+hive> create table raw(line string);
+-- before loading xml data arrange entire xml record into a singe row.
+hive> load data local inpath 'xml' overwrite into table raw;
+hive> select * from raw;
+<rec><name>Ravi</name><age>25</age></rec>
+<rec><name>Rani</name><age>23</age><city>hyderabad</city></rec>
+hive> create table profiles(name string, age int, city string)
+    > row format delimited fields terminated by ',';
+hive> select xpath_string(line,'rec/name') from raw;
+hive> insert overwrite table profiles
+    >   select xpath_string(line,'rec/name'),
+    >     xpath_int(line,'rec/age'),
+    >       xpath_string(line,'rec/city') from raw;
+hive> select * from profiles
+    > ;
+hive> select * from raw;
+_______________________________________
+hive> create database xdb2;
+hive> use xdb2;
+hive> 
+hive> create table raw(line string);
+hive> load data local inpath 'xml2' into table raw;
+hive> select * from raw;
+<rec><name><fname>Ravi</fname><lname>kumar</lname></name><age>25</age><location><current>hyd</current><native>pune</native></location><contact><email><personal>Ravi@gmail.com</personal><official>Ravi@IBM.com</official></email><phone><residence>1234</residence><mobile>1235</mobile><office>1236</office></phone></contact></rec>
+hive> select count(*) from raw;
+hive> 
+hive> create table profiles(fname string, lname string ,
+    >   age int, workcity string, native string,
+    >  peremail string, offemail string,
+    >   resph string, mobile string, offph string)
+    > row format delimited fields terminated by ',';
+hive> insert overwrite table profiles
+    >  select xpath_string(line,'rec/name/fname'),
+    >    xpath_string(line,'rec/name/lname'),     
+    >    xpath_int(line,'rec/age'),          
+    >    xpath_string(line,'rec/location/current'),
+    >    xpath_string(line,'rec/location/native'), 
+    >    xpath_string(line,'rec/contact/email/personal'),   
+    >    xpath_string(line,'rec/contact/email/official'),
+    >    xpath_string(line,'rec/contact/phone/residence'),
+    >    xpath_string(line,'rec/contact/phone/mobile'),   
+    >    xpath_string(line,'rec/contact/phone/office') 
+    >  from raw;
+hive> select * from profiles;
+hive> 
+
+<rec><name>Ravi</name><age>25</age></rec>
+<rec><name>Rani</name><age>23</age><city>hyderabad</city></rec>
+__________________________________________________
+hive> create database xdb3;
+hive> use xdb3;
+hive> create table raw(line string);
+hive> load data local inpath 'xml3' into table raw;
+hive> select * from raw;
+<rec><name>Ravi</name><qual>Btech</qual><qual>Mtech</qual></rec>
+<rec><name>Rani</name><qual>Bsc</qual><qual>Msc</qual><qual>Mtech</qual></rec>
+hive> select xpath(
+hive> select xpath(line,'rec/qual/text()') from raw;
+hive> 
+hive> create table raw2(name string, qual array<string>);
+hive> insert overwrite table raw2
+    >  select xpath_string(line,'rec/name'),
+    >     xpath(line,'rec/qual/text()') from raw;
+hive> 
+hive> select * from raw2;
+hive> select qual[0], qual[1], qual[2] from raw2;
+hive> 
+hive> select explode(qual) as q  from raw2;
+hive> select name, explode(qual) as q  from raw2;
+hive> -- column expression can not be given with explode
+    > ;
+hive> -- solution is lateral view;
+hive> select name, myq from raw2 
+    >   lateral view explode(qual) q as myq;
+hive> create table profiles(name string, qual string)
+    > row format delimited fields terminated by ',';
+hive> insert overwrite table profiles
+    >   select name, myq from raw2
+    >    lateral view explode(qual) q as myq;
+hive> select * from profiles;
+hive> select qual, count(*) from profiles group by qual;
+hive> 
+________________________________________________
+mapreduce code to arrage xml record into single line
+bcoz, hive needs total xml record as single row.
+____________________________________________________
+public class Xml
+{
+  public static class MyMap extends 
+     Mapper<LongWritable,Text,Text,Text>
+  {
+	  String rec="";
+    public void map(LongWritable k, Text v, Context 	
+con) throws IOException, InterruptedException
+    {
+       String line=v.toString().trim();
+       rec+=line;
+       if(line.matches("</tr>"))
+       {   
+             con.write(new Text(rec),new Text());
+             rec="";
+       }
+    }
+   }
+   
+   public static void main(String[] args)
+    throws Exception
+   {
+       Configuration c = new Configuration();
+       Job j = new Job(c,"Job1");
+       j.setJarByClass(Xml.class);
+       j.setMapperClass(MyMap.class);
+       j.setNumReduceTasks(0);
+       j.setOutputKeyClass(Text.class);
+       j.setOutputValueClass(Text.class);
+       Path inputFile = new Path(args[0]);
+       Path outputDir = new Path(args[1]);
+       FileInputFormat.addInputPath(j,inputFile);
+       FileOutputFormat.setOutputPath(j,outputDir);
+       System.exit(j.waitForCompletion(true) ? 0:1);
+   }
+}
+_________________________________________________
+hive xml script:-
+________________________________________
+create database xmldb101;
+use xmldb101;
+create table raw(line string);
+insert overwrite table raw
+ select * from xdb4.raw;
+create table raw2(cid int, pr array<string>);
+insert overwrite table raw2
+  select xpath_int(line,'tr/cid'), xpath(line,'tr/pr/text()') from raw;
+create external  table sales(cid int, pr int)
+  location  '/user/sales';
+insert overwrite table sales
+ select cid, mypr from raw2
+   lateral view explode(pr) p as mypr;
+create external table report(cid int , totbill int)
+  location '/user/rep';
+insert overwrite table report
+  select cid, sum(pr) from sales group by cid;
+select * from raw;
+select * from raw2;
+select * from sales;
+select * from report;
+drop table raw;
+drop table raw2;
+drop table sales;
+drop table report;
+drop database xmldb101;
+______________________________________________
+how to submit script:
+
+$ hive -f <script path>
+-- multiple collections 
+hive> create database sdb;
+hive> use sdb;
+hive> create table raw(line string);
+hive> load data inpath 'res5/part-m-00000' into table raw;
+hive> select * from raw;
+hive> create table raw2(cid int, pr array<string>,           
+    >   qnt array<string>);
+hive> insert overwrite table raw2
+    >   select xpath_int(line,'tr/cid') ,  
+    >     xpath(line,'tr/pr/text()'),
+    >     xpath(line,'tr/qnt/text()') from raw;
+hive> select * from raw2;
+hive> select explode(pr) as p from raw2;
+hive> select explode(qnt) as p from raw2;
+hive> select explode(pr) as p,explode(qnt) as q from raw2;
+hive> 
+hive> create table cidpr(cid int, pr int);
+hive> insert overwrite table cidpr
+    >   select cid, mypr from raw2
+    >    lateral view explode(pr) p as mypr;
+hive> select * from cidpr;
+hive> create table cidqnt(cid int, qnt int);
+hive> insert overwrite table cidqnt
+    >   select cid, myq from raw2
+    >     lateral view explode(qnt) q as myq;
+hive> select * from cidpr;
+hive> select * from cidqnt;
+hive> select x.cid, pr, qnt from cidpr x join cidqnt y
+    >    on (x.cid=y.cid);
+hive> 
+hive> select * from cidpr;
+hive> select * from cidqnt;
+hive> add jar Desktop/udfs.jar;
+hive> -- creating temporary function for UDF class
+    > ;
+hive> create   
+hive> create temporary function auto as 'hive.test.SeqNumber';
+hive> create  function aut as 'hive.test.SeqNumber';          
+hive> 
+hive> select * from cidpr;
+hive> alter table cidpr add columns(n int);
+hive> select * from cidpr;
+hive> alter table cidqnt add columns(n int);
+hive> select * from cidqnt;;                
+hive> insert overwrite table cidpr
+    >   select cid, pr, auto() from cidpr;
+hive> select * from cidpr;
+hive> insert overwrite table cidqnt 
+    >   select cid, qnt, auto() from cidqnt;
+hive> select * from cidqnt;
+hive> select * from cidpr;
+hive> create table sales(cid int, pr int, qnt int, bill int)
+    > ;
+hive> insert overwrite table sales
+    >   select x.cid , pr, qnt, pr*qnt 
+    >   from cidpr x join cidqnt y
+    >  on (x.n=y.n);
+hive> select * from sales;
+hive> create table result(cid int, totbill int);
+hive> insert overwrite table result
+    >   select cid, sum(bill) from sales
+    >     group by cid;
+hive> select * from raw;
+hive> select * from raw2;
+hive> select * cidpr;
+hive> select * from cidpr;
+hive> select * from cidqnt;
+hive> select * from sales;
+hive> select * result;
+hive> select * from result;
+hive>
